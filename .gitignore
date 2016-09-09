@@ -1,0 +1,7 @@
+config.properties
+out/
+*.elf
+*.rpl
+*.rpx
+target/
+Tools/HxD/HxD.ini
