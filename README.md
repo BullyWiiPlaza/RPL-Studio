@@ -17,6 +17,6 @@ Due to copyright issues, the files are **NOT** included in this repository. [The
 ![alt tag](http://fs5.directupload.net/images/160909/jej9ecxo.png)
 
 ##Credits
-BullyWiiPlaza for `RPL Studio`
-Hykem for `rpl2elf`
+BullyWiiPlaza for `RPL Studio`  
+Hykem for `rpl2elf`  
 Nintendo for `makerpl64`
