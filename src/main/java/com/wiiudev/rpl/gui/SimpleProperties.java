@@ -1,4 +1,4 @@
-package com.wiiudev.rpl.gui.utilities;
+package com.wiiudev.rpl.gui;
 
 import java.io.*;
 import java.util.Properties;

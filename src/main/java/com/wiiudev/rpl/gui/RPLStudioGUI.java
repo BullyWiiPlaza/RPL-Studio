@@ -1,18 +1,22 @@
 package com.wiiudev.rpl.gui;
 
-import com.wiiudev.rpl.ExecutableFileType;
-import com.wiiudev.rpl.ExecutableTools;
-import com.wiiudev.rpl.FileExtensions;
-import com.wiiudev.rpl.gui.utilities.FileChooserWrapper;
-import com.wiiudev.rpl.gui.utilities.FileNameUtilities;
-import com.wiiudev.rpl.gui.utilities.IconImageUtilities;
-import com.wiiudev.rpl.gui.utilities.SimpleProperties;
+import com.wiiudev.rpl.ExecutableFileExtension;
+import com.wiiudev.rpl.downloading.ApplicationLauncher;
+import com.wiiudev.rpl.downloading.ApplicationUtilities;
+import com.wiiudev.rpl.downloading.DownloadingUtilities;
+import com.wiiudev.rpl.downloading.ZipUtilities;
+import com.wiiudev.rpl.RPXTool;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class RPLStudioGUI extends JFrame
 {
@@ -20,76 +24,142 @@ public class RPLStudioGUI extends JFrame
 
 	private JTextField rplFilePathField;
 	private JButton rplBrowseButton;
-	private JComboBox<ExecutableFileType> fileTypeComboBox;
 	private JButton repackButton;
 	private JButton unpackButton;
-	private JButton cafeSDKRootBrowseButton;
-	private JTextField cafeSDKRootField;
+	private JButton openButton;
 
 	private SimpleProperties simpleProperties;
 
 	private boolean isUnpacking;
 	private boolean isRepacking;
 
-	public RPLStudioGUI()
+	private RPXTool rpxTool;
+
+	public RPLStudioGUI() throws IOException
 	{
 		add(rootPanel);
 
 		setFrameProperties();
 		simpleProperties = new SimpleProperties();
 
-		populateFileTypes();
 		restorePersistentSettings();
 
 		addFilePathFieldDocumentListener();
 		addBrowseButtonActionListener();
-		addSDKRootDirectoryListener();
 		addUnpackButtonListener();
-		addFileTypeItemListener();
 		addRepackButtonListener();
+		addEditButtonListener();
 
-		setConversionButtonsTexts();
-		setUnpackButtonAvailability();
-		setRepackButtonAvailability();
+		setButtonsAvailability();
+
 		addShutdownBackupHook();
 
-		cafeSDKRootBrowseButton.addActionListener(actionEvent ->
+		rpxTool = new RPXTool();
+		rpxTool.initialize();
+	}
+
+	private void addEditButtonListener()
+	{
+		openButton.addActionListener(actionEvent ->
 		{
-			FileChooserWrapper fileChooserWrapper = new FileChooserWrapper(cafeSDKRootField);
-			fileChooserWrapper.selectFile(this);
-			setRepackButtonAvailability();
+			ApplicationLauncher applicationLauncher = new ApplicationLauncher("C:\\Program Files (x86)\\HxD\\HxD.exe",
+					"https://mh-nexus.de/downloads/HxDSetupEN.zip", "HxD", true);
+			startApplication(actionEvent, applicationLauncher);
 		});
 	}
 
-	private void setConversionButtonsTexts()
+	private void startApplication(ActionEvent actionEvent, ApplicationLauncher applicationLauncher)
 	{
-		ExecutableFileType executableFileType = getSelectedFileType();
-		unpackButton.setText(executableFileType + " -> ELF");
-		repackButton.setText("ELF -> " + executableFileType);
+		JButton editButton = (JButton) actionEvent.getSource();
+		Path installedExecutablePath = applicationLauncher.getInstalledExecutablePath();
+		String setupFileName = applicationLauncher.getSetupFileName();
+
+		try
+		{
+			if (isRunning(setupFileName))
+			{
+				return;
+			}
+
+			String buttonText = editButton.getText();
+			boolean installed = Files.exists(installedExecutablePath);
+
+			if (installed)
+			{
+				editButton.setText("Starting...");
+				ProcessBuilder processBuilder = new ProcessBuilder();
+				processBuilder.command(installedExecutablePath.toString(), rplFilePathField.getText());
+				processBuilder.start();
+				editButton.setText(buttonText);
+			} else
+			{
+				new SwingWorker<String, String>()
+				{
+					@Override
+					protected String doInBackground() throws Exception
+					{
+						try
+						{
+							editButton.setEnabled(false);
+							editButton.setText("Downloading...");
+							DownloadingUtilities.trustAllCertificates();
+							DownloadingUtilities.download(applicationLauncher.getDownloadURL());
+
+							File executeFile;
+
+							if (applicationLauncher.shouldUnZip())
+							{
+								editButton.setText("Unzipping...");
+								executeFile = ZipUtilities.unZip(Paths.get(setupFileName));
+							} else
+							{
+								executeFile = new File(setupFileName);
+							}
+
+							editButton.setText("Executing...");
+							Desktop.getDesktop().open(executeFile);
+						} catch (Exception exception)
+						{
+							exception.printStackTrace();
+						}
+
+						return null;
+					}
+
+					@Override
+					protected void done()
+					{
+						editButton.setEnabled(true);
+						editButton.setText(buttonText);
+					}
+				}.execute();
+			}
+		} catch (Exception exception)
+		{
+			exception.printStackTrace();
+		}
 	}
 
-	private void addSDKRootDirectoryListener()
+	private boolean isRunning(String applicationName) throws IOException
 	{
-		cafeSDKRootField.getDocument().addDocumentListener(new DocumentListener()
+		String forcedExtension = ".exe";
+
+		if (!applicationName.endsWith(forcedExtension))
 		{
-			@Override
-			public void insertUpdate(DocumentEvent documentEvent)
-			{
-				setRepackButtonAvailability();
-			}
+			applicationName += forcedExtension;
+		}
 
-			@Override
-			public void removeUpdate(DocumentEvent documentEvent)
-			{
-				setRepackButtonAvailability();
-			}
+		if (ApplicationUtilities.isProcessRunning(applicationName))
+		{
+			JOptionPane.showMessageDialog(rootPane,
+					applicationName + " is running already",
+					"Error",
+					JOptionPane.ERROR_MESSAGE);
 
-			@Override
-			public void changedUpdate(DocumentEvent documentEvent)
-			{
-				setRepackButtonAvailability();
-			}
-		});
+			return true;
+		}
+
+		return false;
 	}
 
 	private void restorePersistentSettings()
@@ -99,20 +169,6 @@ public class RPLStudioGUI extends JFrame
 		{
 			rplFilePathField.setText(rplFilePath);
 		}
-
-		String cafeRootDirectory = simpleProperties.get("CAFE_ROOT_DIRECTORY");
-
-		if (cafeRootDirectory != null)
-		{
-			cafeSDKRootField.setText(cafeRootDirectory);
-		}
-
-		ExecutableFileType executableFileType = ExecutableFileType.parse(simpleProperties.get("FILE_TYPE"));
-
-		if (executableFileType != null)
-		{
-			fileTypeComboBox.setSelectedItem(executableFileType);
-		}
 	}
 
 	private void addShutdownBackupHook()
@@ -120,45 +176,8 @@ public class RPLStudioGUI extends JFrame
 		Runtime.getRuntime().addShutdownHook(new Thread(() ->
 		{
 			simpleProperties.put("RPL_FILE_PATH", rplFilePathField.getText());
-			simpleProperties.put("CAFE_ROOT_DIRECTORY", cafeSDKRootField.getText());
-			simpleProperties.put("FILE_TYPE", getSelectedFileType().toString());
 			simpleProperties.writeToFile();
 		}));
-	}
-
-	private void setRepackButtonAvailability()
-	{
-		boolean elfExists = doesElfExist();
-		boolean sdkRootValid = new File(cafeSDKRootField.getText()).exists();
-		cafeSDKRootField.setBackground(sdkRootValid ? Color.GREEN : Color.RED);
-		boolean isRepackPossible = elfExists && sdkRootValid && !isRepacking;
-
-		repackButton.setEnabled(isRepackPossible);
-	}
-
-	private boolean doesElfExist()
-	{
-		String elfFileName = getElfFileNameDerived();
-
-		return new File(elfFileName).exists();
-	}
-
-	private String getElfFileNameDerived()
-	{
-		String executableFileName = rplFilePathField.getText();
-		String baseFileName = FileNameUtilities.getBaseFileName(executableFileName);
-
-		return baseFileName + FileExtensions.ELF;
-	}
-
-	public String getElfFilePath()
-	{
-		if (doesElfExist())
-		{
-			return getElfFileNameDerived();
-		}
-
-		throw new IllegalStateException("ELF file does not exist!");
 	}
 
 	private void addRepackButtonListener()
@@ -171,17 +190,17 @@ public class RPLStudioGUI extends JFrame
 					{
 						String repackButtonText = repackButton.getText();
 						isRepacking = true;
-						setUnpackButtonAvailability();
+						setButtonsAvailability();
 						repackButton.setText("Repacking...");
-						setRepackButtonAvailability();
+						setButtonsAvailability();
 
 						try
 						{
-							ExecutableFileType executableFileType = getSelectedFileType();
-							ExecutableTools.repack(executableFileType, getElfFilePath(), cafeSDKRootField.getText());
-							String fileName = getFileName();
+							String filePath = rplFilePathField.getText();
+							rpxTool.repack(filePath);
+							String fileName = getExecutableFileName();
 							JOptionPane.showMessageDialog(rootPane,
-									fileName + "." + getSelectedFileType().toString().toLowerCase() + " repacked successfully!",
+									fileName + " repacked successfully!",
 									"Success",
 									JOptionPane.INFORMATION_MESSAGE,
 									null);
@@ -192,7 +211,7 @@ public class RPLStudioGUI extends JFrame
 						{
 							repackButton.setText(repackButtonText);
 							isRepacking = false;
-							setRepackButtonAvailability();
+							setButtonsAvailability();
 						}
 
 						return null;
@@ -200,20 +219,10 @@ public class RPLStudioGUI extends JFrame
 				}.execute());
 	}
 
-	private String getFileName()
+	private String getExecutableFileName()
 	{
 		String filePath = rplFilePathField.getText();
-		String fileNameWithExtension = new File(filePath).getName();
-		return FileNameUtilities.getBaseFileName(fileNameWithExtension);
-	}
-
-	private void addFileTypeItemListener()
-	{
-		fileTypeComboBox.addItemListener(itemEvent ->
-		{
-			setUnpackButtonAvailability();
-			setConversionButtonsTexts();
-		});
+		return new File(filePath).getName();
 	}
 
 	private void addUnpackButtonListener()
@@ -226,18 +235,21 @@ public class RPLStudioGUI extends JFrame
 					{
 						String unpackButtonText = unpackButton.getText();
 						isUnpacking = true;
-						setUnpackButtonAvailability();
+						setButtonsAvailability();
 						unpackButton.setText("Unpacking...");
 
 						try
 						{
 							String rplFilePath = rplFilePathField.getText();
-							String elfFileName = ExecutableTools.convertRPLToELF(rplFilePath);
+							rpxTool.unpack(rplFilePath);
 							unpackButton.setText(unpackButtonText);
 							isUnpacking = false;
-							setUnpackButtonAvailability();
-
-							ExecutableTools.openWithHexEditor(elfFileName);
+							String fileName = getExecutableFileName();
+							JOptionPane.showMessageDialog(rootPane,
+									fileName + " unpacked successfully!",
+									"Success",
+									JOptionPane.INFORMATION_MESSAGE,
+									null);
 						} catch (Exception exception)
 						{
 							exception.printStackTrace();
@@ -245,8 +257,7 @@ public class RPLStudioGUI extends JFrame
 						{
 							unpackButton.setText(unpackButtonText);
 							isUnpacking = false;
-							setRepackButtonAvailability();
-							setUnpackButtonAvailability();
+							setButtonsAvailability();
 						}
 
 						return null;
@@ -258,11 +269,10 @@ public class RPLStudioGUI extends JFrame
 	{
 		rplBrowseButton.addActionListener(actionEvent ->
 		{
-			ExecutableFileType executableFileType = getSelectedFileType();
-			FileChooserWrapper fileChooserWrapper = new FileChooserWrapper(rplFilePathField, "Wii U Executables",
-					executableFileType.toString().toLowerCase());
+			FileChooserWrapper fileChooserWrapper = new FileChooserWrapper(rplFilePathField,
+					"Wii U Executables", ExecutableFileExtension.getExtensions());
 			fileChooserWrapper.selectFile(this);
-			setRepackButtonAvailability();
+			setButtonsAvailability();
 		});
 	}
 
@@ -273,60 +283,54 @@ public class RPLStudioGUI extends JFrame
 			@Override
 			public void insertUpdate(DocumentEvent documentEvent)
 			{
-				setUnpackButtonAvailability();
+				setButtonsAvailability();
 			}
 
 			@Override
 			public void removeUpdate(DocumentEvent documentEvent)
 			{
-				setUnpackButtonAvailability();
+				setButtonsAvailability();
 			}
 
 			@Override
 			public void changedUpdate(DocumentEvent documentEvent)
 			{
-				setUnpackButtonAvailability();
+				setButtonsAvailability();
 			}
 		});
 	}
 
-	private void setUnpackButtonAvailability()
+	private void setButtonsAvailability()
 	{
 		boolean isUnpackPossible = isUnpackPossible();
-		rplFilePathField.setBackground(isUnpackPossible ? Color.GREEN : Color.RED);
+		rplFilePathField.setBackground(doesExecutableFileExist() ? Color.GREEN : Color.RED);
 		unpackButton.setEnabled(isUnpackPossible);
+		repackButton.setEnabled(isUnpackPossible);
+		openButton.setEnabled(isUnpackPossible);
 	}
 
 	private boolean isUnpackPossible()
 	{
-		String selectedFilePath = rplFilePathField.getText();
-		File selectedFile = new File(selectedFilePath);
-		boolean fileExists = selectedFile.exists();
-		ExecutableFileType selectedFileType = getSelectedFileType();
-		boolean isCorrectFileType = selectedFile.getAbsolutePath().toLowerCase().endsWith(selectedFileType.toString().toLowerCase());
-
-		return fileExists && isCorrectFileType && !isUnpacking;
+		boolean fileExists = doesExecutableFileExist();
+		return fileExists && !isUnpacking && !isRepacking;
 	}
 
-	private ExecutableFileType getSelectedFileType()
+	private boolean doesExecutableFileExist()
 	{
-		int selectedIndex = fileTypeComboBox.getSelectedIndex();
+		String selectedFilePath = rplFilePathField.getText();
+		File selectedFile = new File(selectedFilePath);
+		boolean exists = selectedFile.exists();
+		boolean correctExtension = ExecutableFileExtension.isExecutable(selectedFilePath);
 
-		return fileTypeComboBox.getItemAt(selectedIndex);
+		return exists && correctExtension;
 	}
 
 	private void setFrameProperties()
 	{
-		setTitle("RPL Studio v1.0 by Bully@WiiPlaza");
-		setSize(400, 200);
+		setTitle("RPL Studio by Bully@WiiPlaza");
+		setSize(400, 100);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		IconImageUtilities.setIconImage(this, "Icon.png");
-	}
-
-	private void populateFileTypes()
-	{
-		DefaultComboBoxModel<ExecutableFileType> defaultComboBoxModel = new DefaultComboBoxModel<>(ExecutableFileType.values());
-		fileTypeComboBox.setModel(defaultComboBoxModel);
 	}
 }

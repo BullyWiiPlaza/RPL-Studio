@@ -23,10 +23,12 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="JExecutable Editor U" />
+        <module name="RPL Studio" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="JExecutable Editor U" target="1.8" />
+      <module name="RPL Studio" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

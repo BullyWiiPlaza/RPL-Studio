@@ -1,27 +1,24 @@
-package com.wiiudev.rpl.gui.utilities;
+package com.wiiudev.rpl.gui;
+
+import com.wiiudev.rpl.ExecutableFileExtension;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.File;
+import java.util.Arrays;
 
 public class FileChooserWrapper extends JFileChooser
 {
 	private JTextField pathField;
 	private String extensionDescription;
-	private String extension;
+	private String[] extensions;
 
-	public FileChooserWrapper(JTextField pathField)
-	{
-		this.pathField = pathField;
-		configure();
-	}
-
-	public FileChooserWrapper(JTextField pathField, String description, String extension)
+	public FileChooserWrapper(JTextField pathField, String description, String[] extensions)
 	{
 		this.pathField = pathField;
 		this.extensionDescription = description;
-		this.extension = extension;
+		this.extensions = extensions;
 		setFileFilter();
 		configure();
 	}
@@ -32,7 +29,9 @@ public class FileChooserWrapper extends JFileChooser
 		{
 			public String getDescription()
 			{
-				return extensionDescription + " (*." + extension + ")";
+				return extensionDescription
+						+ " "
+						+ Arrays.toString(extensions).replace("[", "(").replace("]", ")");
 			}
 
 			public boolean accept(File file)
@@ -42,8 +41,7 @@ public class FileChooserWrapper extends JFileChooser
 					return true;
 				} else
 				{
-					String filename = file.getName().toLowerCase();
-					return filename.endsWith("." + extension);
+					return ExecutableFileExtension.isExecutable(file.getAbsolutePath());
 				}
 			}
 		});
@@ -87,11 +85,10 @@ public class FileChooserWrapper extends JFileChooser
 			setCurrentDirectory(currentDirectory);
 		}
 
-		if(extension == null && extensionDescription == null)
+		if (extensions == null && extensionDescription == null)
 		{
 			setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		}
-		else
+		} else
 		{
 			setFileSelectionMode(JFileChooser.FILES_ONLY);
 		}

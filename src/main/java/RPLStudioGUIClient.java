@@ -2,7 +2,7 @@ import com.wiiudev.rpl.gui.RPLStudioGUI;
 
 import javax.swing.*;
 
-public class ExecutableEditorGUIClient
+public class RPLStudioGUIClient
 {
 	public static void main(String[] args) throws Exception
 	{

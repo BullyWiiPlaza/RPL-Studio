@@ -1,4 +1,4 @@
-package com.wiiudev.rpl.gui.utilities;
+package com.wiiudev.rpl.gui;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
