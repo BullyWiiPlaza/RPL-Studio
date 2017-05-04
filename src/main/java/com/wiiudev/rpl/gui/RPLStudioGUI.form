@@ -57,7 +57,7 @@
             </constraints>
             <properties>
               <text value="Open Decompressed"/>
-              <toolTipText value="Opens the DRPX/DRPL file in HxD"/>
+              <toolTipText value="Opens the DRPX/DRPL in HxD"/>
             </properties>
           </component>
         </children>
