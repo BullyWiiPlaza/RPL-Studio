@@ -24,6 +24,7 @@ public class RPLStudioGUI extends JFrame
 	private JButton repackButton;
 	private JButton unpackButton;
 	private JButton openButton;
+	private JLabel initializingLabel;
 
 	private SimpleProperties simpleProperties;
 
@@ -37,21 +38,44 @@ public class RPLStudioGUI extends JFrame
 		add(rootPanel);
 
 		setFrameProperties();
-		simpleProperties = new SimpleProperties();
-
-		restorePersistentSettings();
-
+		handlePersistentSettings();
 		addBrowseButtonActionListener();
 		addUnpackButtonListener();
 		addRepackButtonListener();
 		addOpenButtonListener();
 
 		runButtonsAvailabilityThread();
+		initializeRPXTool();
+	}
 
+	private void handlePersistentSettings()
+	{
+		simpleProperties = new SimpleProperties();
+		restorePersistentSettings();
 		addShutdownBackupHook();
+	}
 
-		rpxTool = new RPXTool();
-		rpxTool.initialize();
+	private void initializeRPXTool() throws IOException
+	{
+		initializingLabel.setText("Initializing " + RPXTool.APPLICATION_NAME + "...");
+
+		Thread thread = new Thread(() ->
+		{
+			try
+			{
+				rpxTool = RPXTool.getInstance();
+				rpxTool.initialize();
+				initializingLabel.setText("");
+				RPLStudioSize.setDefaultSize(this);
+			} catch (IOException exception)
+			{
+				exception.printStackTrace();
+				initializingLabel.setText(RPXTool.APPLICATION_NAME + " initialization failed!");
+			}
+		});
+
+		thread.setName("RPLXTool Initializer");
+		thread.start();
 	}
 
 	private void runButtonsAvailabilityThread()
@@ -303,9 +327,10 @@ public class RPLStudioGUI extends JFrame
 	{
 		boolean isUnpackPossible = canUnpack();
 		executableFilePathField.setBackground(doesExecutableFileExist() ? Color.GREEN : Color.RED);
-		unpackButton.setEnabled(isUnpackPossible);
+		boolean isRPXToolInitialized = rpxTool != null && rpxTool.isInitialized();
+		unpackButton.setEnabled(isUnpackPossible && isRPXToolInitialized);
 		boolean canRepack = canRepack();
-		repackButton.setEnabled(canRepack);
+		repackButton.setEnabled(canRepack && isRPXToolInitialized);
 		openButton.setEnabled(canRepack);
 	}
 
@@ -334,7 +359,7 @@ public class RPLStudioGUI extends JFrame
 	private void setFrameProperties()
 	{
 		setTitle("RPL Studio by Bully@WiiPlaza");
-		setSize(400, 100);
+		RPLStudioSize.setInitializingSize(this);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		IconImageUtilities.setIconImage(this, "Icon.png");

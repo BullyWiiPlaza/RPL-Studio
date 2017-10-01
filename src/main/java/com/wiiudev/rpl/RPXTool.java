@@ -4,6 +4,9 @@ import com.wiiudev.rpl.downloading.DownloadingUtilities;
 import com.wiiudev.rpl.downloading.ZipUtilities;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,13 +14,18 @@ import java.nio.file.StandardCopyOption;
 
 public class RPXTool
 {
+	public static final String APPLICATION_NAME = "wiiurpxtool";
+	private static final String EXECUTABLE_FILE_PATH = APPLICATION_NAME + ".exe";
+
 	private String filePath;
 	private String downloadURL;
+	private boolean initialized;
 
-	public RPXTool()
+	public static RPXTool getInstance() throws IOException
 	{
-		this("wiiurpxtool.exe",
-				"https://github.com/0CBH0/wiiurpxtool/releases/download/v1.1/wiiurpxtool.zip");
+		String downloadURL = getRedirectedURL("https://github.com/0CBH0/" + APPLICATION_NAME + "/releases/latest") + "/" + APPLICATION_NAME + ".zip";
+
+		return new RPXTool(EXECUTABLE_FILE_PATH, downloadURL);
 	}
 
 	private RPXTool(String filePath, String downloadURL)
@@ -35,6 +43,8 @@ public class RPXTool
 			Path downloadedZipFile = DownloadingUtilities.download(downloadURL);
 			ZipUtilities.unZip(downloadedZipFile);
 		}
+
+		initialized = true;
 	}
 
 	public void unpack(String inputFile) throws Exception
@@ -56,7 +66,7 @@ public class RPXTool
 		String extension = getExtension(inputFile);
 		inputFile = inputFile.replace(extension, "");
 		extension = extension.substring(1); // Drop the "d"
-		return inputFile += extension;
+		return inputFile + extension;
 	}
 
 	public static String getDecompressedFileName(String inputFile)
@@ -66,9 +76,9 @@ public class RPXTool
 		return inputFile.replace(extension, "") + "d" + extension;
 	}
 
-	private Path rename(Path oldName, String newNameString) throws IOException
+	private void rename(Path oldName, String newNameString) throws IOException
 	{
-		return Files.move(oldName,
+		Files.move(oldName,
 				oldName.resolveSibling(newNameString),
 				StandardCopyOption.REPLACE_EXISTING);
 	}
@@ -92,5 +102,21 @@ public class RPXTool
 		processBuilder.command(filePath, "-" + argument, inputFile);
 		Process process = processBuilder.start();
 		process.waitFor();
+	}
+
+	private static String getRedirectedURL(String url) throws IOException
+	{
+		URLConnection urlConnection = new URL(url).openConnection();
+		urlConnection.connect();
+
+		try (InputStream ignored = urlConnection.getInputStream())
+		{
+			return urlConnection.getURL().toString();
+		}
+	}
+
+	public boolean isInitialized()
+	{
+		return initialized;
 	}
 }
