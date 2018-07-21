@@ -11,11 +11,12 @@ If you intend to modify an `RPL`/`RPX` for game modding purposes you firstly hav
 Other than having Java 8 installed, no.
 
 ## How does it work?
-[`wiiurpxtool`](https://github.com/0CBH0/wiiurpxtool) is used for packing and unpacking.
+[`wiiurpxtool`](https://github.com/0CBH0/wiiurpxtool) is used for packing. For unpacking, you have the choice between `wiiurpxtool` and [`rpl2elf`](https://github.com/Relys/rpl2elf).
 
 ## How does the application graphical interface look like?
-![alt tag](http://fs5.directupload.net/images/160910/ct9ji8k6.png)
+![alt tag](http://fs1.directupload.net/images/180721/psm9qvxz.png)
 
 ## Credits
 0CBH0 for `wiiurpxtool`  
+Hykem for `rpl2elf`  
 BullyWiiPlaza for `RPL Studio`
