@@ -6,9 +6,10 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class IconImageUtilities
+class IconImageUtilities
 {
-	public static void setIconImage(Window window, String fileName)
+	@SuppressWarnings("SameParameterValue")
+	static void setIconImage(Window window, String fileName)
 	{
 		try
 		{

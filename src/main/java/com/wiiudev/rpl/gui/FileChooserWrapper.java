@@ -8,13 +8,13 @@ import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
 
-public class FileChooserWrapper extends JFileChooser
+class FileChooserWrapper extends JFileChooser
 {
 	private JTextField pathField;
 	private String extensionDescription;
 	private String[] extensions;
 
-	public FileChooserWrapper(JTextField pathField, String description, String[] extensions)
+	FileChooserWrapper(JTextField pathField, String description, String[] extensions)
 	{
 		this.pathField = pathField;
 		this.extensionDescription = description;
@@ -31,7 +31,8 @@ public class FileChooserWrapper extends JFileChooser
 			{
 				return extensionDescription
 						+ " "
-						+ Arrays.toString(extensions).replace("[", "(").replace("]", ")");
+						+ Arrays.toString(extensions).replace("[", "(")
+						.replace("]", ")");
 			}
 
 			public boolean accept(File file)
@@ -47,7 +48,7 @@ public class FileChooserWrapper extends JFileChooser
 		});
 	}
 
-	public void selectFile(Component parent)
+	void selectFile(Component parent)
 	{
 		int selectedAnswer = showOpenDialog(parent);
 

@@ -1,39 +1,31 @@
-import com.wiiudev.rpl.OperatingSystemUtilities;
-import com.wiiudev.rpl.RPXTool;
 import com.wiiudev.rpl.gui.RPLStudioGUI;
 
-import javax.swing.*;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
+import static com.wiiudev.rpl.OperatingSystemUtilities.isRunningWindows;
+import static com.wiiudev.rpl.RPXTool.APPLICATION_NAME;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static javax.swing.SwingUtilities.invokeLater;
+import static javax.swing.UIManager.getSystemLookAndFeelClassName;
+import static javax.swing.UIManager.setLookAndFeel;
 
-// TODO Use RPL2Elf by Hykem for unpacking?
 public class RPLStudioGUIClient
 {
-	public static void main(String[] args) throws Exception
+	public static void main(String[] arguments) throws Exception
 	{
-		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		setLookAndFeel(getSystemLookAndFeelClassName());
 
-		SwingUtilities.invokeLater(() ->
+		invokeLater(() ->
 		{
-			if (OperatingSystemUtilities.isRunningWindows())
+			if (isRunningWindows())
 			{
-				try
-				{
-					RPLStudioGUI rplStudioGUI = new RPLStudioGUI();
-					rplStudioGUI.setVisible(true);
-				} catch (IOException exception)
-				{
-					exception.printStackTrace();
-				}
+				RPLStudioGUI rplStudioGUI = new RPLStudioGUI();
+				rplStudioGUI.setVisible(true);
 			} else
 			{
-				JOptionPane.showMessageDialog(null,
-						"Sorry, this currently only works on Windows due to \"" + RPXTool.APPLICATION_NAME + "\" being a Windows executable.\n",
-						"Error",
-						JOptionPane.ERROR_MESSAGE,
-						null);
+				showMessageDialog(null,
+						"Sorry, this currently only works on Windows due to \""
+								+ APPLICATION_NAME + "\" being a Windows executable.\n",
+						"Unsupported", ERROR_MESSAGE, null);
 			}
 		});
 	}

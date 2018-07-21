@@ -34,6 +34,6 @@ public enum ExecutableFileExtension
 			extensions.add(executableFileExtension.name().toLowerCase());
 		}
 
-		return extensions.stream().toArray(String[]::new);
+		return extensions.toArray(new String[0]);
 	}
 }

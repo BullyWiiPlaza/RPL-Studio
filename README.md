@@ -16,6 +16,6 @@ Other than having Java 8 installed, no.
 ## How does the application graphical interface look like?
 ![alt tag](http://fs5.directupload.net/images/160910/ct9ji8k6.png)
 
-##Credits
+## Credits
 0CBH0 for `wiiurpxtool`  
 BullyWiiPlaza for `RPL Studio`

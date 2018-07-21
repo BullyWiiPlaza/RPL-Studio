@@ -2,6 +2,7 @@ package com.wiiudev.rpl.gui;
 
 import com.wiiudev.rpl.ExecutableFileExtension;
 import com.wiiudev.rpl.RPXTool;
+import com.wiiudev.rpl.UnpackExecutable;
 import com.wiiudev.rpl.downloading.ApplicationLauncher;
 import com.wiiudev.rpl.downloading.ApplicationUtilities;
 import com.wiiudev.rpl.downloading.DownloadingUtilities;
@@ -11,12 +12,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static com.wiiudev.rpl.ExecutableFileExtension.isExecutable;
+import static com.wiiudev.rpl.gui.RPLStudioSize.setInitializingSize;
+import static java.awt.Desktop.getDesktop;
+import static java.nio.file.Files.*;
+
 public class RPLStudioGUI extends JFrame
 {
+	private static final String RPL_FILE_PATH_KEY = "RPL_FILE_PATH";
+
 	private JPanel rootPanel;
 
 	private JTextField executableFilePathField;
@@ -25,6 +34,8 @@ public class RPLStudioGUI extends JFrame
 	private JButton unpackButton;
 	private JButton openButton;
 	private JLabel initializingLabel;
+	private JComboBox<UnpackExecutable> decompressUtilitySelection;
+	private JButton aboutButton;
 
 	private SimpleProperties simpleProperties;
 
@@ -33,19 +44,41 @@ public class RPLStudioGUI extends JFrame
 
 	private RPXTool rpxTool;
 
-	public RPLStudioGUI() throws IOException
+	public RPLStudioGUI()
 	{
 		add(rootPanel);
 
 		setFrameProperties();
 		handlePersistentSettings();
 		addBrowseButtonActionListener();
+		initializeDecompressUtilitySelection();
 		addUnpackButtonListener();
 		addRepackButtonListener();
 		addOpenButtonListener();
+		addAboutButtonListener();
 
 		runButtonsAvailabilityThread();
 		initializeRPXTool();
+	}
+
+	private void initializeDecompressUtilitySelection()
+	{
+		decompressUtilitySelection.setModel(new DefaultComboBoxModel<>(UnpackExecutable.values()));
+	}
+
+	private void addAboutButtonListener()
+	{
+		aboutButton.addActionListener(actionEvent ->
+		{
+			try
+			{
+				Desktop desktop = getDesktop();
+				desktop.browse(new URI("https://github.com/BullyWiiPlaza/RPL-Studio/blob/master/README.md"));
+			} catch (IOException | URISyntaxException exception)
+			{
+				exception.printStackTrace();
+			}
+		});
 	}
 
 	private void handlePersistentSettings()
@@ -55,7 +88,7 @@ public class RPLStudioGUI extends JFrame
 		addShutdownBackupHook();
 	}
 
-	private void initializeRPXTool() throws IOException
+	private void initializeRPXTool()
 	{
 		initializingLabel.setText("Initializing " + RPXTool.APPLICATION_NAME + "...");
 
@@ -67,7 +100,7 @@ public class RPLStudioGUI extends JFrame
 				rpxTool.initialize();
 				initializingLabel.setText("");
 				RPLStudioSize.setDefaultSize(this);
-			} catch (IOException exception)
+			} catch (Exception exception)
 			{
 				exception.printStackTrace();
 				initializingLabel.setText(RPXTool.APPLICATION_NAME + " initialization failed!");
@@ -82,6 +115,7 @@ public class RPLStudioGUI extends JFrame
 	{
 		Thread buttonsAvailabilitySetter = new Thread(() ->
 		{
+			//noinspection InfiniteLoopStatement
 			while (true)
 			{
 				setButtonsAvailability();
@@ -106,8 +140,10 @@ public class RPLStudioGUI extends JFrame
 
 	private void openDecompressed()
 	{
-		ApplicationLauncher applicationLauncher = new ApplicationLauncher("C:\\Program Files (x86)\\HxD\\HxD.exe",
-				"https://mh-nexus.de/downloads/HxDSetupEN.zip", "HxD", true);
+		ApplicationLauncher applicationLauncher = new ApplicationLauncher(
+				"C:\\Program Files (x86)\\HxD\\HxD.exe",
+				"https://mh-nexus.de/downloads/HxDSetupEN.zip",
+				"HxD", true);
 		startApplication(applicationLauncher);
 	}
 
@@ -125,7 +161,7 @@ public class RPLStudioGUI extends JFrame
 			}
 
 			String buttonText = editButton.getText();
-			boolean installed = Files.exists(installedExecutablePath);
+			boolean installed = exists(installedExecutablePath);
 
 			if (installed)
 			{
@@ -140,7 +176,7 @@ public class RPLStudioGUI extends JFrame
 				new SwingWorker<String, String>()
 				{
 					@Override
-					protected String doInBackground() throws Exception
+					protected String doInBackground()
 					{
 						try
 						{
@@ -161,7 +197,7 @@ public class RPLStudioGUI extends JFrame
 							}
 
 							editButton.setText("Executing...");
-							Desktop.getDesktop().open(executeFile);
+							getDesktop().open(executeFile);
 						} catch (Exception exception)
 						{
 							exception.printStackTrace();
@@ -214,7 +250,7 @@ public class RPLStudioGUI extends JFrame
 
 	private void restorePersistentSettings()
 	{
-		String rplFilePath = simpleProperties.get("RPL_FILE_PATH");
+		String rplFilePath = simpleProperties.get(RPL_FILE_PATH_KEY);
 		if (rplFilePath != null)
 		{
 			executableFilePathField.setText(rplFilePath);
@@ -225,7 +261,7 @@ public class RPLStudioGUI extends JFrame
 	{
 		Runtime.getRuntime().addShutdownHook(new Thread(() ->
 		{
-			simpleProperties.put("RPL_FILE_PATH", executableFilePathField.getText());
+			simpleProperties.put(RPL_FILE_PATH_KEY, executableFilePathField.getText());
 			simpleProperties.writeToFile();
 		}));
 	}
@@ -236,7 +272,7 @@ public class RPLStudioGUI extends JFrame
 				new SwingWorker<String, String>()
 				{
 					@Override
-					protected String doInBackground() throws Exception
+					protected String doInBackground()
 					{
 						String repackButtonText = repackButton.getText();
 						isRepacking = true;
@@ -246,9 +282,9 @@ public class RPLStudioGUI extends JFrame
 						{
 							String decompressedFileName = getDecompressedFileName();
 							Path decompressedFilePath = Paths.get(decompressedFileName);
-							byte[] compressedFileBytes = Files.readAllBytes(decompressedFilePath);
+							byte[] compressedFileBytes = readAllBytes(decompressedFilePath);
 							rpxTool.repack(decompressedFileName);
-							Files.write(decompressedFilePath, compressedFileBytes);
+							write(decompressedFilePath, compressedFileBytes);
 							String fileName = getExecutableFileName();
 							JOptionPane.showMessageDialog(rootPane,
 									"\"" + getDecompressedFileName() + "\"" +
@@ -283,7 +319,7 @@ public class RPLStudioGUI extends JFrame
 				new SwingWorker<String, String>()
 				{
 					@Override
-					protected String doInBackground() throws Exception
+					protected String doInBackground()
 					{
 						String unpackButtonText = unpackButton.getText();
 						isUnpacking = true;
@@ -293,9 +329,10 @@ public class RPLStudioGUI extends JFrame
 						{
 							String rplFilePath = executableFilePathField.getText();
 							Path inputFilePath = Paths.get(rplFilePath);
-							byte[] packedExecutableBytes = Files.readAllBytes(inputFilePath);
-							rpxTool.unpack(rplFilePath);
-							Files.write(inputFilePath, packedExecutableBytes);
+							byte[] packedExecutableBytes = readAllBytes(inputFilePath);
+							UnpackExecutable unpackExecutable = getSelectedItem(decompressUtilitySelection);
+							rpxTool.unpack(rplFilePath, unpackExecutable);
+							write(inputFilePath, packedExecutableBytes);
 							unpackButton.setText(unpackButtonText);
 							isUnpacking = false;
 							openDecompressed();
@@ -311,6 +348,12 @@ public class RPLStudioGUI extends JFrame
 						return null;
 					}
 				}.execute());
+	}
+
+	private UnpackExecutable getSelectedItem(JComboBox<UnpackExecutable> decompressUtilitySelection)
+	{
+		int selectedIndex = decompressUtilitySelection.getSelectedIndex();
+		return decompressUtilitySelection.getItemAt(selectedIndex);
 	}
 
 	private void addBrowseButtonActionListener()
@@ -337,7 +380,7 @@ public class RPLStudioGUI extends JFrame
 	private boolean canRepack()
 	{
 		String decompressedFileName = getDecompressedFileName();
-		return Files.exists(Paths.get(decompressedFileName));
+		return exists(Paths.get(decompressedFileName));
 	}
 
 	private boolean canUnpack()
@@ -351,7 +394,7 @@ public class RPLStudioGUI extends JFrame
 		String selectedFilePath = executableFilePathField.getText();
 		File selectedFile = new File(selectedFilePath);
 		boolean exists = selectedFile.exists();
-		boolean correctExtension = ExecutableFileExtension.isExecutable(selectedFilePath);
+		boolean correctExtension = isExecutable(selectedFilePath);
 
 		return exists && correctExtension;
 	}
@@ -359,7 +402,7 @@ public class RPLStudioGUI extends JFrame
 	private void setFrameProperties()
 	{
 		setTitle("RPL Studio by Bully@WiiPlaza");
-		RPLStudioSize.setInitializingSize(this);
+		setInitializingSize(this);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		IconImageUtilities.setIconImage(this, "Icon.png");

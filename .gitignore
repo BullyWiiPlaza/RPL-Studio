@@ -5,3 +5,5 @@ out/
 *.rpx
 target/
 Tools/HxD/HxD.ini
+/.idea/
+/RPL Studio.iml

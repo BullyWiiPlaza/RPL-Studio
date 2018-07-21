@@ -3,12 +3,12 @@ package com.wiiudev.rpl.gui;
 import java.io.*;
 import java.util.Properties;
 
-public class SimpleProperties
+class SimpleProperties
 {
 	private Properties properties;
 	private String propertiesFileName;
 
-	public SimpleProperties()
+	SimpleProperties()
 	{
 		propertiesFileName = "config.properties";
 		properties = new Properties();
@@ -26,12 +26,13 @@ public class SimpleProperties
 		}
 	}
 
-	public void put(String key, String value)
+	@SuppressWarnings("SameParameterValue")
+	void put(String key, String value)
 	{
 		properties.setProperty(key, value);
 	}
 
-	public void writeToFile()
+	void writeToFile()
 	{
 		try
 		{
@@ -43,7 +44,8 @@ public class SimpleProperties
 		}
 	}
 
-	public String get(String key)
+	@SuppressWarnings("SameParameterValue")
+	String get(String key)
 	{
 		return (String) properties.get(key);
 	}
