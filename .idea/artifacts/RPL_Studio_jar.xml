@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" build-on-make="true" name="RPL Studio:jar">
-    <output-path>$PROJECT_DIR$</output-path>
-    <root id="archive" name="RPL Studio.jar">
-      <element id="module-output" name="RPL Studio" />
-    </root>
-  </artifact>
-</component>

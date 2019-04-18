@@ -1,9 +1,9 @@
-config.properties
-out/
-*.elf
-*.rpl
-*.rpx
-target/
-Tools/HxD/HxD.ini
-/.idea/
+/config.properties
+/*.drpx
+/*.drpl
+/*.elf
+/*.rpl
+/*.rpx
+/target
+/.idea
 /RPL Studio.iml

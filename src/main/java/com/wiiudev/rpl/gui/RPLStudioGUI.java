@@ -7,6 +7,7 @@ import com.wiiudev.rpl.downloading.ApplicationLauncher;
 import com.wiiudev.rpl.downloading.ApplicationUtilities;
 import com.wiiudev.rpl.downloading.DownloadingUtilities;
 import com.wiiudev.rpl.downloading.ZipUtilities;
+import lombok.val;
 
 import javax.swing.*;
 import java.awt.*;
@@ -103,7 +104,9 @@ public class RPLStudioGUI extends JFrame
 			} catch (Exception exception)
 			{
 				exception.printStackTrace();
-				initializingLabel.setText(RPXTool.APPLICATION_NAME + " initialization failed!");
+				val exceptionMessage = exception.getClass().getSimpleName() + ": " + exception.getMessage();
+				val labelMessage = RPXTool.APPLICATION_NAME + " initialization failed: " + exceptionMessage;
+				initializingLabel.setText(labelMessage);
 			}
 		});
 
@@ -115,7 +118,6 @@ public class RPLStudioGUI extends JFrame
 	{
 		Thread buttonsAvailabilitySetter = new Thread(() ->
 		{
-			//noinspection InfiniteLoopStatement
 			while (true)
 			{
 				setButtonsAvailability();
