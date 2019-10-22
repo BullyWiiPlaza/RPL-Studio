@@ -1,34 +1,34 @@
 package com.wiiudev.rpl.downloading;
 
+import lombok.val;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
+import static java.nio.file.Files.copy;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 public class DownloadingUtilities
 {
 	public static Path download(String downloadURL) throws IOException
 	{
-		String fileName = getFileName(downloadURL);
-		URL website = new URL(downloadURL);
-		Path targetPath = Paths.get(fileName);
+		val fileName = getFileName(downloadURL);
+		val website = new URL(downloadURL);
+		val targetPath = Paths.get(fileName);
 
-		try (InputStream inputStream = website.openStream())
+		try (val inputStream = website.openStream())
 		{
-			Files.copy(inputStream,
-					targetPath,
-					StandardCopyOption.REPLACE_EXISTING);
+			copy(inputStream, targetPath, REPLACE_EXISTING);
 		}
 
 		return targetPath;

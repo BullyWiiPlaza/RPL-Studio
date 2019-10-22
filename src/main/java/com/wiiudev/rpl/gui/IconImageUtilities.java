@@ -1,10 +1,10 @@
 package com.wiiudev.rpl.gui;
 
+import lombok.val;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
 
 class IconImageUtilities
 {
@@ -13,8 +13,8 @@ class IconImageUtilities
 	{
 		try
 		{
-			InputStream imageInputStream = window.getClass().getResourceAsStream("/" + fileName);
-			BufferedImage bufferedImage = ImageIO.read(imageInputStream);
+			val imageInputStream = window.getClass().getResourceAsStream("/" + fileName);
+			val bufferedImage = ImageIO.read(imageInputStream);
 			window.setIconImage(bufferedImage);
 		} catch (IOException exception)
 		{

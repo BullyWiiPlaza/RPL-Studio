@@ -1,5 +1,7 @@
 package com.wiiudev.rpl.gui;
 
+import lombok.val;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -16,7 +18,7 @@ class RPLStudioSize
 	@SuppressWarnings("SameParameterValue")
 	private static void setSize(JFrame frame, int width, int height)
 	{
-		Dimension dimension = new Dimension(width, height);
+		val dimension = new Dimension(width, height);
 		frame.setMinimumSize(dimension);
 		frame.setSize(dimension);
 	}
@@ -25,7 +27,7 @@ class RPLStudioSize
 
 	static void setInitializingSize(JFrame frame)
 	{
-		int height = DEFAULT_HEIGHT + INITIALIZATION_HEIGHT_INCREMENT;
+		val height = DEFAULT_HEIGHT + INITIALIZATION_HEIGHT_INCREMENT;
 		setSize(frame, DEFAULT_WIDTH, height);
 	}
 }

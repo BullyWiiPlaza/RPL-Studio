@@ -1,20 +1,22 @@
 package com.wiiudev.rpl;
 
+import lombok.val;
+
 import java.util.LinkedList;
-import java.util.List;
 
 public enum ExecutableFileExtension
 {
-	RPL, RPX;
+	RPL,
+	RPX;
 
 	public static boolean isExecutable(String fileName)
 	{
-		ExecutableFileExtension[] executableFileExtensions = values();
+		val executableFileExtensions = values();
 		fileName = fileName.toLowerCase();
 
-		for (ExecutableFileExtension executableFileExtension : executableFileExtensions)
+		for (val executableFileExtension : executableFileExtensions)
 		{
-			String extension = executableFileExtension.name().toLowerCase();
+			val extension = executableFileExtension.name().toLowerCase();
 			if (fileName.endsWith("." + extension))
 			{
 				return true;
@@ -26,10 +28,10 @@ public enum ExecutableFileExtension
 
 	public static String[] getExtensions()
 	{
-		ExecutableFileExtension[] executableFileExtensions = values();
-		List<String> extensions = new LinkedList<>();
+		val executableFileExtensions = values();
+		val extensions = new LinkedList<String>();
 
-		for (ExecutableFileExtension executableFileExtension : executableFileExtensions)
+		for (val executableFileExtension : executableFileExtensions)
 		{
 			extensions.add(executableFileExtension.name().toLowerCase());
 		}

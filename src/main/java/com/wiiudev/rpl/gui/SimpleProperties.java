@@ -1,5 +1,7 @@
 package com.wiiudev.rpl.gui;
 
+import lombok.val;
+
 import java.io.*;
 import java.util.Properties;
 
@@ -17,7 +19,7 @@ class SimpleProperties
 		{
 			if (new File(propertiesFileName).exists())
 			{
-				InputStream propertiesReader = new FileInputStream(propertiesFileName);
+				val propertiesReader = new FileInputStream(propertiesFileName);
 				properties.load(propertiesReader);
 			}
 		} catch (IOException exception)
@@ -36,7 +38,7 @@ class SimpleProperties
 	{
 		try
 		{
-			OutputStream propertiesWriter = new FileOutputStream(propertiesFileName);
+			val propertiesWriter = new FileOutputStream(propertiesFileName);
 			properties.store(propertiesWriter, null);
 		} catch (IOException exception)
 		{

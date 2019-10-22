@@ -1,13 +1,24 @@
 package com.wiiudev.rpl.downloading;
 
+import lombok.Getter;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static com.wiiudev.rpl.downloading.DownloadingUtilities.*;
+
 public class ApplicationLauncher
 {
+	@Getter
 	private Path installedExecutablePath;
+
+	@Getter
 	private String downloadURL;
+
+	@Getter
 	private String name;
+
+	@Getter
 	private boolean unZip;
 
 	public ApplicationLauncher(String installedExecutablePath,
@@ -21,28 +32,8 @@ public class ApplicationLauncher
 		this.unZip = unZip;
 	}
 
-	public Path getInstalledExecutablePath()
-	{
-		return installedExecutablePath;
-	}
-
-	public String getDownloadURL()
-	{
-		return downloadURL;
-	}
-
-	public String getName()
-	{
-		return name;
-	}
-
-	public boolean shouldUnZip()
-	{
-		return unZip;
-	}
-
 	public String getSetupFileName()
 	{
-		return DownloadingUtilities.getFileName(downloadURL);
+		return getFileName(downloadURL);
 	}
 }
