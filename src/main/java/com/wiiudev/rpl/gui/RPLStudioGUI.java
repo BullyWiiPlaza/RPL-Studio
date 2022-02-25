@@ -101,7 +101,7 @@ public class RPLStudioGUI extends JFrame
 
 	private void initializeRPXTool()
 	{
-		initializingLabel.setText("Initializing " + RPXTool.APPLICATION_NAME + "...");
+		initializingLabel.setText("Initializing " + RPXTool.WII_U_RPX_TOOL + "...");
 
 		Thread thread = new Thread(() ->
 		{
@@ -115,7 +115,7 @@ public class RPLStudioGUI extends JFrame
 			{
 				exception.printStackTrace();
 				val exceptionMessage = exception.getClass().getSimpleName() + ": " + exception.getMessage();
-				val labelMessage = RPXTool.APPLICATION_NAME + " initialization failed: " + exceptionMessage;
+				val labelMessage = RPXTool.WII_U_RPX_TOOL + " initialization failed: " + exceptionMessage;
 				initializingLabel.setText(labelMessage);
 			}
 		});

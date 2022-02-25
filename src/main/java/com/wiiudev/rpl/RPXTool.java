@@ -17,9 +17,9 @@ import static org.apache.commons.io.IOUtils.toByteArray;
 
 public class RPXTool
 {
-	public static final String APPLICATION_NAME = "wiiurpxtool";
-	private static final String RPL_2_ELF = "rpl2elf";
-	private static final String WII_U_RPX_TOOL_FILE_PATH = APPLICATION_NAME + ".exe";
+	public static final String WII_U_RPX_TOOL = "wiiurpxtool";
+	public static final String RPL_2_ELF = "rpl2elf";
+	private static final String WII_U_RPX_TOOL_FILE_PATH = WII_U_RPX_TOOL + ".exe";
 
 	private String filePath;
 	private String downloadURL;
@@ -29,8 +29,9 @@ public class RPXTool
 
 	public static RPXTool getInstance() throws IOException
 	{
-		val downloadURL = getRedirectedURL("https://github.com/0CBH0/"
-				+ APPLICATION_NAME + "/releases/latest") + "/" + APPLICATION_NAME + ".zip";
+		/* getRedirectedURL("https://github.com/0CBH0/"
+				+ WII_U_RPX_TOOL + "/releases/latest") + "/" + WII_U_RPX_TOOL + ".zip";*/
+		val downloadURL = "https://github.com/0CBH0/wiiurpxtool/releases/download/v1.3/wiiurpxtool.zip";
 
 		return new RPXTool(WII_U_RPX_TOOL_FILE_PATH, downloadURL);
 	}
